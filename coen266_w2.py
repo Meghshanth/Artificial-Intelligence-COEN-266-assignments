@@ -152,7 +152,6 @@ def random_agent(root, env):
   return node
 
 def dfs_agent(root, env):
-  #return 0
   stack = [root]
   visited = set()
   while stack:
