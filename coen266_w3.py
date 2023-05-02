@@ -202,9 +202,9 @@ def a_star_agent(root, env):
  # return 0
 
 def main():
-  env = VacuumEnvironment() # change this line to switch environments
+  env = IncrementalNQueensEnvironment() # change this line to switch environments
   root = Node(env.init_state(), None, 0, None)
-  agent = greedy_search_agent # change this line to switch agent functions
+  agent = a_star_agent # change this line to switch agent functions
   goal = agent(root, env)
   path = goal.full_path()
   print("ENV   :", env.__class__.__name__)
