@@ -164,10 +164,42 @@ class IncrementalNQueensEnvironment(Environment):
 
 # YOUR AGENT FUNCTIONS GO HERE
 def greedy_search_agent(root, env):
-  return 0
+    frontier = []
+    heapq.heappush(frontier, (0, 0, root))
+    visited = set()
+    tiebreaker = 0
+    while frontier:
+        node = heapq.heappop(frontier)[2]
+        visited.add(str(node.state))
+        if env.is_goal(node):
+            return node
+        for successor in env.get_successors(node):
+            if str(successor.state) in visited:
+                continue
+            tiebreaker += 1
+            heapq.heappush(frontier, (env.heuristic(successor), tiebreaker, successor))
+
+  #return 0
 
 def a_star_agent(root, env):
-  return 0
+    frontier = []
+    heapq.heappush(frontier, (0, 0, root))
+    best_cost = {}
+    best_cost[str(root. state)] = 0
+    tiebreaker = 0
+    while frontier:
+        node = heapq.heappop(frontier)[2]
+        if env.is_goal(node):
+            return node
+        for successor in env. get_successors (node):
+            prev_best_cost = best_cost.get(str(successor.state), math.inf)
+            new_best_cost = best_cost[str (node.state)] + successor.cost
+            if new_best_cost < prev_best_cost:
+                tiebreaker += 1
+                best_cost [str(successor.state)] = new_best_cost
+                heapq.heappush(frontier, (new_best_cost + env. heuristic(successor), tiebreaker, successor))
+
+ # return 0
 
 def main():
   env = VacuumEnvironment() # change this line to switch environments
