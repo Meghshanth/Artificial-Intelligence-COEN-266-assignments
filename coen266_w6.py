@@ -124,8 +124,7 @@ def find_value_function(mdp, num_iterations):
         
     for state in mdp.state_set:
       if not mdp.possible_actions(state):
-        continue
-            
+        continue   
       action_values = []
             
       for action in mdp.possible_actions(state):
@@ -140,7 +139,7 @@ def find_value_function(mdp, num_iterations):
       V_prime[state] = max(action_values)
         
     V = V_prime
-    
+
   return V
 
 
