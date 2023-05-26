@@ -115,11 +115,56 @@ class DoubleBanditsMDP:
 
 
 def find_value_function(mdp, num_iterations):
-  pass # your code here
+  V = {} # Value Dictionary
+  for state in mdp.state_set:
+    V[state] = 0
+    
+  for _ in range(num_iterations):
+    V_prime = V.copy()
+        
+    for state in mdp.state_set:
+      if not mdp.possible_actions(state):
+        continue
+            
+      action_values = []
+            
+      for action in mdp.possible_actions(state):
+        Q = 0 # Q-state variable
+        for state_prime in mdp.successor_states(state, action):
+          p = mdp.transition_prob(state, action, state_prime) # possible action value
+          r = mdp.reward(state, action, state_prime) # reward value
+          Q += p * (r + mdp.discount_factor * V[state_prime])
+                
+        action_values.append(Q)
+            
+      V_prime[state] = max(action_values)
+        
+    V = V_prime
+    
+  return V
 
 
 def extract_policy(mdp, value_function):
-  pass # your code here
+  policy = {} # Policy Dictionary
+    
+  for state in mdp.state_set:
+    best_action = None
+    highest_value = float('-inf')
+        
+    for action in mdp.possible_actions(state):
+      Q = 0 # Q-state variable
+      for state_prime in mdp.successor_states(state, action):
+        p = mdp.transition_prob(state, action, state_prime) # possible action value
+        r = mdp.reward(state, action, state_prime) # reward value
+        Q += p * (r + mdp.discount_factor * value_function[state_prime])
+            
+        if Q > highest_value:
+          best_action = action
+          highest_value = Q
+        
+    policy[state] = best_action
+    
+  return policy
 
 
 mdp = SimpleLeftRightMDP() # change this line to change which MDP you're solving
