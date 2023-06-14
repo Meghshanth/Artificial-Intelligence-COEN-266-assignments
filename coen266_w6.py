@@ -167,7 +167,7 @@ def extract_policy(mdp, value_function):
 
 
 mdp = SimpleLeftRightMDP() # change this line to change which MDP you're solving
-mdp.discount_factor = 0.9 # change this line to change the discount factor (gamma)
+mdp.discount_factor = 0 # change this line to change the discount factor (gamma)
 num_iterations = 10 # change this line to change how many iterations of the Bellman update you perform
 value_function = find_value_function(mdp, num_iterations)
 policy = extract_policy(mdp, value_function)

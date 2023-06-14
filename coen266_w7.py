@@ -214,28 +214,130 @@ def run_episodes(mdp, num_episodes, sample_limit=100):
 
 # your code here
 
+def find_value_function(mdp, num_iterations, learned_transition_probs, learned_rewards):
+  V = {} # Value Dictionary
+  for state in mdp.state_set:
+    V[state] = 0
+    
+  for _ in range(num_iterations):
+    V_prime = V.copy()
+        
+    for state in mdp.state_set:
+      if not mdp.possible_actions(state):
+        continue   
+      action_values = []
+            
+      for action in mdp.possible_actions(state):
+        Q = 0 # Q-state variable
+        for state_prime in mdp.successor_states(state, action):
+          p = learned_transition_probs.get((state, action, state_prime), 0.0)  #mdp.transition_prob(state, action, state_prime) # possible action value
+          r = learned_rewards.get((state, action, state_prime), 0.0) #mdp.reward(state, action, state_prime) # reward value
+          Q += p * (r + mdp.discount_factor * V[state_prime])
+                
+        action_values.append(Q)
+            
+      V_prime[state] = max(action_values)
+        
+    V = V_prime
 
-"""
+  return V
+
+def extract_policy(mdp, value_function, learned_transition_probs, learned_rewards):
+  policy = {} # Policy Dictionary
+    
+  for state in mdp.state_set:
+    best_action = None
+    highest_value = float('-inf')
+        
+    for action in mdp.possible_actions(state):
+      Q = 0 # Q-state variable
+      for state_prime in mdp.successor_states(state, action):
+        p = learned_transition_probs.get((state, action, state_prime), 0.0) #mdp.transition_prob(state, action, state_prime) # possible action value
+        r = learned_rewards.get((state, action, state_prime), 0.0) #mdp.reward(state, action, state_prime) # reward value
+        Q += p * (r + mdp.discount_factor * value_function[state_prime])
+            
+        if Q > highest_value:
+          best_action = action
+          highest_value = Q
+        
+    policy[state] = best_action
+    
+  return policy
+
+def learn_model(mdp, episodes):
+  learned_transition_probs = {}
+  learned_rewards = {}
+  transition_counts = {}
+  reward_accumulators = {}
+
+  for episode in episodes:
+    for sample in episode:
+      state, action, next_state, reward = sample
+      key = (state, action, next_state)
+      transition_counts[key] = transition_counts.get(key, 0) + 1
+      if key in reward_accumulators:
+        reward_accumulators[key] += reward
+      else:
+        reward_accumulators[key] = reward
+
+  for key, count in transition_counts.items():
+    state, action, next_state = key
+    learned_transition_probs[key] = count / sum([c for k, c in transition_counts.items() if k[:2] == (state, action)])
+
+    learned_rewards[key] = reward_accumulators[key] / transition_counts[key]
+
+  return learned_transition_probs, learned_rewards
+
+def learn_q_table(mdp, episodes, learning_rate):
+  q_table = {}
+
+  for state in mdp.state_set:
+    for action in mdp.possible_actions(state):
+      q_table[(state, action)] = 0
+
+  for episode in episodes:
+    for s, a, s_prime, r in episode:
+      max_q = max([q_table.get((s_prime, a_prime)) for a_prime in mdp.possible_actions(s_prime)] or [0])
+
+      q_table[(s, a)] = q_table[(s, a)] + learning_rate * ((r + mdp.discount_factor * max_q) - q_table[(s, a)])
+
+      s = s_prime
+
+  return q_table
+
+
+def extract_policy_from_q_table(mdp, q_table):
+  policy = {}
+
+  for state in mdp.state_set:
+    best_action = "None"
+    for action in mdp.possible_actions(state):
+      if q_table.get((state, action), 0)>q_table.get((state, best_action), 0):
+        best_action = action
+        policy[state] = best_action
+
+  return policy
+
+
 # to run model-based RL
 mdp = FiveStateGridworldMDP()
 num_episodes = 1000
 mdp.discount_factor = 0.9
 episodes = run_episodes(mdp, 1000)
 (learned_transition_probs, learned_rewards) = learn_model(mdp, episodes)
-value_function = find_value_function(mdp, num_iterations, learned_transition_probs, learned_rewards)
+value_function = find_value_function(mdp, num_episodes, learned_transition_probs, learned_rewards)
 policy = extract_policy(mdp, value_function, learned_transition_probs, learned_rewards)
 print("MDP    :", mdp.__class__.__name__)
 print("T^     :", learned_transition_probs)
 print("R^     :", learned_rewards)
 print("VALUE  :", value_function)
 print("POLICY :", policy)
-"""
 
-"""
+
 # to run Q-learning
 mdp = FiveStateGridworldMDP()
 num_episodes = 1000
-learning_rate = 0.5
+learning_rate = 1
 mdp.discount_factor = 0.9
 episodes = run_episodes(mdp, 1000)
 q_table = learn_q_table(mdp, episodes, learning_rate)
@@ -243,4 +345,4 @@ policy = extract_policy_from_q_table(mdp, q_table)
 print("MDP    :", mdp.__class__.__name__)
 print("QTABLE :", q_table)
 print("POLICY :", policy)
-"""
+
